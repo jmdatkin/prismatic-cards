@@ -25,7 +25,15 @@ const config = {
       "prismatic-cards-s3.s3.us-east-1.amazonaws.com",
       "cdn.discordapp.com"
     ]
-  }
+  },
+  webpack: (
+    config,
+    { buildId, dev, isServer, defaultLoaders, nextRuntime, webpack }
+  ) => {
+    // Important: return the modified config
+    config.externals = {sharp:  "commonjs sharp"}
+    return config
+  },
 };
 
 export default config;

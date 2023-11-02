@@ -1,4 +1,3 @@
-import { reportUnusedDisableDirectives } from '.eslintrc.cjs';
 import sharp from 'sharp';
 
 const processCardImage = (imageData: string) => {
