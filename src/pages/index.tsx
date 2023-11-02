@@ -5,7 +5,7 @@ import Link from "next/link";
 
 import { api } from "@/utils/api";
 import { useRef, useState } from "react";
-import Card from "./components/card";
+import Card from "../components/card";
 
 const libreBaskerville = Libre_Baskerville({ weight: ["400", "700"], subsets: ["latin"] });
 
