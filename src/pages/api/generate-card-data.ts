@@ -4,28 +4,29 @@ import { processCardImage } from '@/services/image-service';
 import { NextApiRequest, NextApiResponse } from 'next';
 import OpenAI from 'openai';
 import makeCard from '@/services/card-service';
+import { NextRequest, NextResponse } from 'next/server';
 
 export const config = {
     runtime: 'edge'
 };
 
 export default async function handler(
-    request: NextApiRequest,
-    response: NextApiResponse,
+    request: NextRequest,
 ) {
-
-    const { prompt } = request.body;
-
     try {
+        const { searchParams } = new URL(request.url);
+
+        const prompt = searchParams.get('prompt');
+
+        if (!prompt) return new Response("Invalid or no prompt provided.", { status: 500 })
 
         const card = await makeCard(prompt);
 
-        response.status(200).json({
-            body: { ...card },
-            query: request.query,
-            cookies: request.cookies,
-        });
+        return new Response(
+            JSON.stringify({
+                body: { ...card },
+            }), { status: 200 })
     } catch (e) {
-        response.status(500).json({ e });
+        return new Response(JSON.stringify(e), { status: 500 })
     }
 }
