@@ -5,6 +5,10 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import OpenAI from 'openai';
 import makeCard from '@/services/card-service';
 
+export const config = {
+    runtime: 'edge'
+};
+
 export default async function handler(
     request: NextApiRequest,
     response: NextApiResponse,
