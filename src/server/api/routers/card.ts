@@ -21,16 +21,16 @@ export const cardRouter = createTRPCRouter({
 
       let cardData;
 
-      if (env.NODE_ENV === "development")
+      if (env.NODE_ENV === "development" || env.NODE_ENV === "production")
         cardData = await makeCard(prompt);
-      else if (env.NODE_ENV === "production") {
-        const result = await fetch(`${process.env["BASE_URL"]}/api/generate-card-data?prompt=${prompt}`);
-        const text = await result.text();
+      // else if (env.NODE_ENV === "production") {
+      //   const result = await fetch(`${process.env["BASE_URL"]}/api/generate-card-data?prompt=${prompt}`);
+      //   const text = await result.text();
 
-        console.log("text?", text)
+      //   console.log("text?", text)
 
-        cardData = JSON.parse(text);
-      } else throw Error("NODE_ENV environment variable has an unrecognized value");
+      //   cardData = JSON.parse(text);
+      // } else throw Error("NODE_ENV environment variable has an unrecognized value");
 
       return ctx.db.card.create({
         data: {
