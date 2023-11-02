@@ -23,7 +23,10 @@ export default (props: any) => {
     // )
     return (
         <div>
+            {session.user.image ?
             <Image className="rounded-full" width={56} height={56} alt={`${session.user.name}'s profile image`} src={session.user.image}></Image>
+            : <span className="text-white">{session.user.name}</span>
+            }
         </div>
     )
 };
