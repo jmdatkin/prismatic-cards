@@ -1,7 +1,8 @@
 import { signIn } from "next-auth/react"
+import Button from "./button";
 
 export default () => {
     return (
-        <button className="text-white" onClick={() => signIn("discord")}>Sign In</button>
+        <Button className="text-white" onClick={() => signIn("discord")}>Sign In</Button>
     );
 }

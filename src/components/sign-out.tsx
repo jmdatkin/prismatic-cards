@@ -1,8 +1,9 @@
 import { signOut } from "next-auth/react"
+import Button from "./button";
 
 export default () => {
  
     return (
-        <button onClick={() => signOut()}>Sign Out</button>
+        <Button onClick={() => signOut()}>Sign Out</Button>
     );
 }

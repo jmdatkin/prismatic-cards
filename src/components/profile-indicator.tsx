@@ -1,6 +1,7 @@
 import { useSession } from "next-auth/react";
 import SignIn from "./sign-in";
 import SignOut from "./sign-out";
+import Image from "next/image";
 
 
 export default (props: any) => {
@@ -9,14 +10,20 @@ export default (props: any) => {
 
     if (!session) {
         return (
-            <SignIn></SignIn>
+            // <SignIn></SignIn>
+            <></>
         )
     }
 
+    // return (
+    //     <div className="text-white">
+    //         Hi {session.user.name}!
+    //         <SignOut></SignOut>
+    //     </div>
+    // )
     return (
-        <div className="text-white">
-            Hi {session.user.name}!
-            <SignOut></SignOut>
+        <div>
+            <Image className="rounded-full" width={56} height={56} alt={`${session.user.name}'s profile image`} src={session.user.image}></Image>
         </div>
     )
 };

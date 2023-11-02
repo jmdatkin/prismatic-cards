@@ -22,7 +22,8 @@ const config = {
   },
   images: {
     domains: [
-      "prismatic-cards-s3.s3.us-east-1.amazonaws.com"
+      "prismatic-cards-s3.s3.us-east-1.amazonaws.com",
+      "cdn.discordapp.com"
     ]
   }
 };
