@@ -4,6 +4,7 @@ import { processCardImage } from '@/services/image-service';
 import { NextApiRequest, NextApiResponse } from 'next';
 import OpenAI from 'openai';
 import { env } from 'process';
+import makeCard from '@/services/card-service';
 
 export default async function handler(
     request: NextApiRequest,
@@ -15,29 +16,11 @@ export default async function handler(
     console.log(prompt);
 
     try {
-        const card = await generateCardData(prompt);
 
-        console.log("card?", card);
-
-        const convertedImage = await processCardImage(card.image);
-
-        if (!convertedImage) throw Error("No data returned from image processing");
-
-        const keyName = `${request.body.user.id}:${card.title}:${card.desc.substring(0, 32)}:${Date.now()}`;
-
-        const location = await uploadToS3(keyName, convertedImage);
+        const card = await makeCard(prompt);
 
         response.status(200).json({
-            body: {
-                card: {
-                    title: card.title,
-                    description: card.desc,
-                    attack: card.atk,
-                    defense: card.def,
-                    rarity: card.rarity,
-                },
-                imageLocation: location
-            },
+            body: { ...card },
             query: request.query,
             cookies: request.cookies,
         });
