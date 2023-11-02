@@ -1,0 +1,73 @@
+.card {
+    transition: transform 0.1s ease-out;
+    cursor: pointer;
+}
+
+.card:hover {
+    transform: translate(-3px, -3px);
+    box-shadow: 0 0 5px rgba(0,0,0,0.2);
+}
+
+.attack,
+.defense {
+    display: flex;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+    font-size: 24pt;
+    color:coral;
+    text-shadow: 2px 2px 1px #222;
+    font-weight: 800;
+    background-repeat: no-repeat;
+    user-select: none;
+}
+
+.attack {
+    width: 50px;
+    height: 50px;
+    position: absolute;
+    left: -12px;
+    bottom: -12px;
+    background: url('./sword.png');
+    background-size: contain;
+}
+
+.defense {
+    width: 50px;
+    height: 50px;
+    position: absolute;
+    right: -12px;
+    bottom: -12px;
+    background: url('./shield.png');
+    background-size: contain;
+}
+
+.cardTitle {
+    min-height: 50px;
+    background-repeat: no-repeat;
+    background-image: url('./cardbgbronze.png');
+    color: #9e5722;
+    text-shadow: 1px 1px 2px #222;
+}
+
+.cardBronze {
+    background-image: url('./cardbgbronze.png');
+}
+
+.cardSilver {
+    background-image: url('./cardbgsilver.png');
+}
+
+.cardGold {
+    background-image: url('./cardbggold.png');
+}
+
+.cardPrismatic {
+    background-image: url('./cardbgprismatic.png');
+}
+
+.cardImage {
+    flex-grow: 1;
+}
+
+.cardDesc {}

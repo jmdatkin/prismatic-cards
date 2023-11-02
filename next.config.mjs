@@ -17,6 +17,14 @@ const config = {
     locales: ["en"],
     defaultLocale: "en",
   },
+  eslint: {
+    ignoreDuringBuilds: true
+  },
+  images: {
+    domains: [
+      "prismatic-cards-s3.s3.us-east-1.amazonaws.com"
+    ]
+  }
 };
 
 export default config;
