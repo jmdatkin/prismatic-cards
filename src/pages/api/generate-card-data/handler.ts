@@ -17,10 +17,11 @@ export default async function handler(
 
     try {
 
-        const card = await makeCard(prompt);
+        // const card = await makeCard(prompt);
 
         response.status(200).json({
-            body: { ...card },
+            // body: { ...card },
+            body: { message: "Testing" },
             query: request.query,
             cookies: request.cookies,
         });
