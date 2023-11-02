@@ -6,6 +6,7 @@ import {
   publicProcedure,
 } from "@/server/api/trpc";
 import makeCard from "@/services/card-service";
+import { env } from "@/env.mjs";
 
 export const cardRouter = createTRPCRouter({
   getAll: publicProcedure
@@ -18,16 +19,18 @@ export const cardRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const prompt = input.prompt;
 
-      // const result = await fetch(`${process.env["BASE_URL"]}/api/generate-card-data?prompt=${prompt}`);
-      // const text = await result.text();
+      let cardData;
 
-      // console.log("text?", text)
+      if (env.NODE_ENV === "development")
+        cardData = await makeCard(prompt);
+      else if (env.NODE_ENV === "production") {
+        const result = await fetch(`${process.env["BASE_URL"]}/api/generate-card-data?prompt=${prompt}`);
+        const text = await result.text();
 
-      // const cardData = JSON.parse(text);
+        console.log("text?", text)
 
-      const cardData = await makeCard(prompt);
-
-      console.log(cardData);
+        cardData = JSON.parse(text);
+      } else throw Error("NODE_ENV environment variable has an unrecognized value");
 
       return ctx.db.card.create({
         data: {
