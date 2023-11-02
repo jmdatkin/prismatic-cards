@@ -17,10 +17,6 @@ const useGetCards = () => {
   return api.card.getAll.useQuery();
 };
 
-const Input = (props) => {
-
-};
-
 export default function Home() {
   const [prompt, setPrompt] = useState('')
 
