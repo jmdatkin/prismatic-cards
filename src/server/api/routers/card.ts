@@ -23,6 +23,8 @@ export const cardRouter = createTRPCRouter({
 
       try {
         const cardData = await getCardFromLambda(prompt);
+
+        console.log(cardData);
         
         if (cardData.StatusCode === 500) throw Error("An error occurred during lambda execution.");
 
