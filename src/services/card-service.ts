@@ -1,3 +1,5 @@
+import { db } from "@/server/db";
+import { Card, Prisma } from "@prisma/client";
 import { AWSError, Lambda } from "aws-sdk";
 import { PromiseResult } from "aws-sdk/lib/request";
 
@@ -5,7 +7,7 @@ const lambda = new Lambda({
     region: 'us-east-1'
 });
 
-const getCardFromLambda: (prompt: string) => Promise<PromiseResult<Lambda.InvocationResponse, AWSError>> = async (prompt) => {
+const invokeGenerateCardLambda: (prompt: string, pendingCardId: number) => Promise<PromiseResult<Lambda.InvocationResponse, AWSError>> = async (prompt) => {
 
     const params = {
         FunctionName: 'prismatic-cards_generate-card-data',
@@ -17,4 +19,13 @@ const getCardFromLambda: (prompt: string) => Promise<PromiseResult<Lambda.Invoca
     return lambda.invoke(params).promise();
 };
 
-export { getCardFromLambda };
+
+const fulfillPending: (pendingCardId: number, fulfilledCardData: Card) => any = (pendingCardId, fulfilledCardData) => {
+    db.card.create(
+        {
+            data: fulfilledCardData
+        }
+    );
+}
+
+export { invokeGenerateCardLambda, fulfillPending };

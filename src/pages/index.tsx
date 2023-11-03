@@ -26,7 +26,7 @@ export default function Home() {
 
   const { data, isLoading: cardsLoading } = useGetCards();
 
-  const { mutate: createCard, isLoading } = api.card.create.useMutation({
+  const { mutate: createCard, isLoading } = api.card.createPending.useMutation({
     onSuccess: () => {
       void ctx.card.invalidate();
     }

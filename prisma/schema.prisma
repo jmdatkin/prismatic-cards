@@ -11,6 +11,15 @@ datasource db {
     relationMode = "prisma"
 }
 
+model PendingCard {
+    id        Int      @id @default(autoincrement())
+    createdAt DateTime @default(now())
+    prompt    String
+
+    createdBy   User   @relation(fields: [createdById], references: [id])
+    createdById String
+}
+
 model Card {
     id             Int      @id @default(autoincrement())
     title          String   @db.VarChar(256)
@@ -55,12 +64,13 @@ model Session {
 }
 
 model User {
-    id            String    @id @default(cuid())
+    id            String        @id @default(cuid())
     name          String?
-    email         String?   @unique
+    email         String?       @unique
     emailVerified DateTime?
     image         String?
     cards         Card[]
+    pendingCards  PendingCard[]
     accounts      Account[]
     sessions      Session[]
 }
