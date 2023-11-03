@@ -5,13 +5,15 @@ import {
   protectedProcedure,
   publicProcedure,
 } from "@/server/api/trpc";
-import makeCard from "@/services/card-service";
+import { getCardFromLambda } from "@/services/card-service";
 import { env } from "@/env.mjs";
 
 export const cardRouter = createTRPCRouter({
   getAll: publicProcedure
     .query(({ ctx }) => {
-      return ctx.db.card.findMany();
+      return ctx.db.card.findMany({
+        orderBy: { createdAt: "desc" }
+      });
     }),
 
   create: protectedProcedure
@@ -19,29 +21,26 @@ export const cardRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const prompt = input.prompt;
 
-      let cardData;
+      try {
+        const cardData = await getCardFromLambda(prompt);
+        
+        if (cardData.StatusCode === 500) throw Error("An error occurred during lambda execution.");
 
-      if (env.NODE_ENV === "development" || env.NODE_ENV === "production")
-        cardData = await makeCard(prompt);
-      // else if (env.NODE_ENV === "production") {
-      //   const result = await fetch(`${process.env["BASE_URL"]}/api/generate-card-data?prompt=${prompt}`);
-      //   const text = await result.text();
+        console.log("cardDataPayload?", cardData.Payload);
+        const cardDataObj = JSON.parse(JSON.parse(cardData.Payload?.toString()!).body);
+        console.log("cardDataObj?", cardDataObj);
 
-      //   console.log("text?", text)
-
-      //   cardData = JSON.parse(text);
-      // } else throw Error("NODE_ENV environment variable has an unrecognized value");
-
-      return ctx.db.card.create({
-        data: {
-          title: cardData.card.title,
-          description: cardData.card.description,
-          attack: cardData.card.attack,
-          defense: cardData.card.defense,
-          imageUrl: cardData.imageUrl,
-          createdBy: { connect: { id: ctx.session.user.id } },
-        },
-      });
+        return ctx.db.card.create({
+          data: {
+            title: cardDataObj.card.title,
+            description: cardDataObj.card.description,
+            attack: cardDataObj.card.attack,
+            defense: cardDataObj.card.defense,
+            imageUrl: cardDataObj.imageUrl,
+            createdBy: { connect: { id: ctx.session.user.id } },
+          },
+        });
+      } catch (e) { throw e }
     }),
 
 });

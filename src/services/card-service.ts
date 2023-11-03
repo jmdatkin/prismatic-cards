@@ -1,40 +1,20 @@
-import { inferProcedureOutput } from "@trpc/server";
-import { processCardImage } from "./image-service";
-import { generateCardData } from "./openai-service";
-import { uploadToS3 } from "./s3-service";
-import { AppRouter } from "@/server/api/root";
-import fakeImage from "@/fakeImage";
+import { AWSError, Lambda } from "aws-sdk";
+import { PromiseResult } from "aws-sdk/lib/request";
 
-// const makeCard: (prompt: string) => inferProcedureOutput<AppRouter["card"]["create"]> = (prompt) => {
-const makeCard: (prompt: string) => any = async (prompt) => {
+const lambda = new Lambda({
+    region: 'us-east-1'
+});
 
-    try {
-        const card = await generateCardData(prompt);
-        // const card = fakeImage;
+const getCardFromLambda: (prompt: string) => Promise<PromiseResult<Lambda.InvocationResponse, AWSError>> = async (prompt) => {
 
-        const convertedImage = await processCardImage(card.image);
+    const params = {
+        FunctionName: 'prismatic-cards_generate-card-data',
+        Payload: JSON.stringify({
+            prompt
+        })
+    };
 
-        if (!convertedImage) throw Error("No data returned from image processing");
-
-        const keyName = `${card.title}:${card.desc.substring(0, 32)}:${Date.now()}`;
-
-        const location = await uploadToS3(keyName, convertedImage);
-
-        console.log("location?", location);
-
-        return Promise.resolve({
-            card: {
-                title: card.title,
-                description: card.desc,
-                attack: card.atk,
-                defense: card.def,
-                rarity: card.rarity,
-            },
-            imageUrl: location
-        });
-    } catch (e) {
-        return Promise.reject(e);
-    }
+    return lambda.invoke(params).promise();
 };
 
-export default makeCard;
+export { getCardFromLambda };
