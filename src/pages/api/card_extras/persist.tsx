@@ -27,6 +27,7 @@ export default function handler(
           description: z.string(),
           attack: z.number(),
           defense: z.number(),
+          rarity: z.number(),
           imageUrl: z.string(),
         }),
         pendingCardId: z.number()
