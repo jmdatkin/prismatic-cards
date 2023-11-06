@@ -7,12 +7,13 @@ const lambda = new Lambda({
     region: 'us-east-1'
 });
 
-const invokeGenerateCardLambda: (prompt: string, pendingCardId: number) => Promise<PromiseResult<Lambda.InvocationResponse, AWSError>> = async (prompt) => {
+const invokeGenerateCardLambda: (prompt: string, pendingCardId: number) => Promise<PromiseResult<Lambda.InvocationResponse, AWSError>> = async (prompt, pendingCardId) => {
 
     const params = {
         FunctionName: 'prismatic-cards_generate-card-data',
         Payload: JSON.stringify({
-            prompt
+            prompt,
+            pendingCardId
         })
     };
 
