@@ -29,6 +29,8 @@ export const cardRouter = createTRPCRouter({
         }
       });
 
+      if (!newPendingCard) return;
+
       // Invoke lambda without caring about return type to avoid timeout
       void invokeGenerateCardLambda(prompt, newPendingCard.id);
 
