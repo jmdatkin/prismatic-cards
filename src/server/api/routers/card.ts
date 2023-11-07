@@ -10,7 +10,7 @@ import { env } from "@/env.mjs";
 import { Card } from "@prisma/client";
 import { CardRarity } from "@/types/card-rarity";
 import { rule } from "postcss";
-import { useQuery } from "@tanstack/react-query";
+import { QueryClient, useQuery } from "@tanstack/react-query";
 import { getQueryClient } from "@trpc/react-query/shared";
 import { api } from "@/utils/api";
 
@@ -85,7 +85,10 @@ export const cardRouter = createTRPCRouter({
             id: pendingCard.id
           }
         });
-        api.useUtils().card.getAll.invalidate(); 
+
+        const queryClient = new QueryClient();
+        queryClient.invalidateQueries();
+
       }
 
       return newFulfilledCard;
