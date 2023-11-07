@@ -8,6 +8,7 @@ import {
 import { invokeGenerateCardLambda } from "@/services/card-service";
 import { env } from "@/env.mjs";
 import { Card } from "@prisma/client";
+import { CardRarity } from "@/types/card-rarity";
 
 export const cardRouter = createTRPCRouter({
   getAll: publicProcedure
@@ -78,6 +79,7 @@ export const cardRouter = createTRPCRouter({
       description: z.string(),
       attack: z.number(),
       defense: z.number(),
+      rarity: z.nativeEnum(CardRarity),
       imageUrl: z.string(),
     }))
     .mutation(async ({ ctx, input }) => {
@@ -98,6 +100,7 @@ export const cardRouter = createTRPCRouter({
             description: input.description,
             attack: input.attack,
             defense: input.defense,
+            rarity: input.rarity,
             imageUrl: input.imageUrl,
             createdBy: { connect: { id: ctx.session.user.id } },
           },

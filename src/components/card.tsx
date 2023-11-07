@@ -25,7 +25,7 @@ function Card(props: any) {
             <div className={`${styles.attack} z-[200]`}>{props.value.attack}</div>
             <div className={`${styles.defense} z-[200]`}>{props.value.defense}</div>
             <div className={`${styles.cardTitle} ${rarityMap[props.value.rarity]}`}>
-                <h4 className="text-lg uppercase font-bold text-[#9e5722] text-center">{props.value.title}</h4>
+                <h4 className="text-lg uppercase font-bold text-center">{props.value.title}</h4>
             </div>
             <div className="text-sm overflow-hidden flex-grow text-ellipsis p-4">
                 {props.value.description != "" ?

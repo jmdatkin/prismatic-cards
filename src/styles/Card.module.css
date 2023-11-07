@@ -46,24 +46,28 @@
     min-height: 50px;
     background-repeat: no-repeat;
     background-image: url('./cardbgbronze.png');
-    color: #9e5722;
+    background-size: contain;
     text-shadow: 1px 1px 2px #222;
 }
 
 .cardBronze {
     background-image: url('./cardbgbronze.png');
+    color: #9e5722;
 }
 
 .cardSilver {
     background-image: url('./cardbgsilver.png');
+    color: rgb(217, 223, 245);
 }
 
 .cardGold {
     background-image: url('./cardbggold.png');
+    color: #f2c316;
 }
 
 .cardPrismatic {
     background-image: url('./cardbgprismatic.png');
+    color: #9b3dff;
 }
 
 .cardImage {
