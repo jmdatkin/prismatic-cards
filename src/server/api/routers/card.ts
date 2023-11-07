@@ -5,10 +5,14 @@ import {
   protectedProcedure,
   publicProcedure,
 } from "@/server/api/trpc";
-import { invokeGenerateCardLambda } from "@/services/card-service";
+import { invokeGenerateCardLambda, mock_invokeGenerateCardLambda } from "@/services/card-service";
 import { env } from "@/env.mjs";
 import { Card } from "@prisma/client";
 import { CardRarity } from "@/types/card-rarity";
+import { rule } from "postcss";
+import { useQuery } from "@tanstack/react-query";
+import { getQueryClient } from "@trpc/react-query/shared";
+import { api } from "@/utils/api";
 
 export const cardRouter = createTRPCRouter({
   getAll: publicProcedure
@@ -32,8 +36,11 @@ export const cardRouter = createTRPCRouter({
 
       if (!newPendingCard) return;
 
+      if (env["NODE_ENV"] === "production")
       // Invoke lambda without caring about return type to avoid timeout
-      void invokeGenerateCardLambda(prompt, newPendingCard.id);
+        void invokeGenerateCardLambda(prompt, newPendingCard.id);
+      else
+        mock_invokeGenerateCardLambda(prompt, newPendingCard.id);
 
       return newPendingCard;
     }),
@@ -57,7 +64,7 @@ export const cardRouter = createTRPCRouter({
         include: {
           createdBy: {
             select: {
-              id: true
+              id: true,
             }
           }
         }
@@ -65,9 +72,21 @@ export const cardRouter = createTRPCRouter({
 
       if (!pendingCard) return;
 
-      const newFulfilledCard = ctx.db.card.create({
-        data: { ...input.card, createdById: pendingCard.createdById }
+      const newFulfilledCard = await ctx.db.card.create({
+        data: { ...input.card, prompt: pendingCard.prompt, createdById: pendingCard.createdById }
       })
+
+      if (newFulfilledCard) {
+        ctx.db.pendingCard.update({
+          data: {
+            fulfilled: true
+          },
+          where: {
+            id: pendingCard.id
+          }
+        });
+        api.useUtils().card.getAll.invalidate(); 
+      }
 
       return newFulfilledCard;
     }),
@@ -83,17 +102,8 @@ export const cardRouter = createTRPCRouter({
       imageUrl: z.string(),
     }))
     .mutation(async ({ ctx, input }) => {
-      // const prompt = input.prompt;
 
       try {
-        // console.log(cardData);
-
-        // if (cardData.StatusCode === 500) throw Error("An error occurred during lambda execution.");
-
-        // console.log("cardDataPayload?", cardData.Payload);
-        // const cardDataObj = JSON.parse(JSON.parse(cardData.Payload?.toString()!).body);
-        // console.log("cardDataObj?", cardDataObj);
-
         return ctx.db.card.create({
           data: {
             title: input.title,

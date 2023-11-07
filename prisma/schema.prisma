@@ -12,24 +12,24 @@ datasource db {
 }
 
 model PendingCard {
-    id        Int      @id @default(autoincrement())
-    createdAt DateTime @default(now())
-    prompt    String
-
-    createdBy   User   @relation(fields: [createdById], references: [id])
+    id          Int      @id @default(autoincrement())
+    createdAt   DateTime @default(now())
+    prompt      String
+    fulfilled   Boolean  @default(false)
+    createdBy   User     @relation(fields: [createdById], references: [id])
     createdById String
 }
 
 model Card {
-    id             Int      @id @default(autoincrement())
-    title          String   @db.VarChar(256)
-    description    String   @db.VarChar(512)
-    attack         Int
-    defense        Int
-    rarity         Int      @default(0)
-    imageUrl       String?  @db.VarChar(512)
-    awsS3ObjectKey String?  @db.VarChar(512)
-    createdAt      DateTime @default(now())
+    id          Int      @id @default(autoincrement())
+    title       String   @db.VarChar(256)
+    description String   @db.VarChar(512)
+    attack      Int
+    defense     Int
+    rarity      Int      @default(0)
+    prompt      String   @default("") @db.VarChar(256)
+    imageUrl    String?  @db.VarChar(512)
+    createdAt   DateTime @default(now())
 
     createdBy   User   @relation(fields: [createdById], references: [id])
     createdById String
