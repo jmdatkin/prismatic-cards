@@ -86,39 +86,92 @@ const generateCardData = async (prompt: string) => {
 
     // DALL-E
     const image = await openai.images.generate({
+        model: "dall-e-3",
         prompt: `${prompt}`,
-        size: "512x512",
+        // size: "512x512",
+        n: 1,
+        size: "1024x1024",
         response_format: "b64_json",
     });
+    // const image = await openai.images.generate({
+        
+    //     prompt: `${prompt}`,
+    //     size: "512x512",
+    //     response_format: "b64_json",
+    // });
 
     // CHATGPT
-    const info = await openai.chat.completions.create({
+    const title = await openai.chat.completions.create({
         model: "gpt-3.5-turbo",
         messages: [{
             "role": "system",
-            "content": "You are generating card information for a playing card game. You will be provided descriptions of the card's image and you will convert these descriptions into a dramatic title and description for the card. The title and description should be formatted as '%t\n%d, where %t is the title and %d is the description. Both should be at most 250 characters long.",
+            "content": "You are generating card information for a playing card game. You will be provided a descrption of the card's image and you will convert this  description into a title for the card. The title should be at most 250 characters long.",
         },
         {
             "role": "user",
-            "content": `Generate a title and card description for a playing card with following image: ${prompt}.`,
+            "content": `Generate a title for a playing card with following image: ${prompt}.`,
+        }
+        ],
+    });
+    
+    const description = await openai.chat.completions.create({
+        model: "gpt-3.5-turbo",
+        messages: [{
+            "role": "system",
+            "content": "You are generating card information for a playing card game. You will be provided a descrption of the card's image and you will convert this description into blurb text for the card. The blurb text should be at most 250 characters long.",
+        },
+        {
+            "role": "user",
+            "content": `Generate blurb text for a playing card with following image: ${prompt}.`,
         }
         ],
     });
 
     if (!image.data[0]) throw new Error("No image data returned from OpenAI");
-    if (!info.choices[0]) throw new Error("No data returned from OpenAI");
+    if (!title.choices[0]) throw new Error("No title data returned from OpenAI");
+    if (!description.choices[0]) throw new Error("No description data returned from OpenAI");
 
-    const content = info.choices[0].message.content!;
+    let t = title.choices[0].message.content!;
+    let d = description.choices[0].message.content!;
 
-    const contentArray = content.split("\n");
-    let t = contentArray[0] || '';
-    let d = contentArray[1] || '';
+    // const content = info.choices[0].message.content!;
 
-    t = t.replaceAll("Title: ", "");
-    t = t.replaceAll("\"", "");
+    // const contentArray = content.split("\n");
+    // let t = contentArray[0] || '';
+    // let d = contentArray[1] || '';
 
-    d = d.replaceAll("Description: ", "");
-    d = d.replaceAll("\"", "");
+    // t = t.replaceAll("Title: ", "");
+    // t = t.replaceAll("\"", "");
+
+    // d = d.replaceAll("Description: ", "");
+    // d = d.replaceAll("\"", "");
+    // const info = await openai.chat.completions.create({
+    //     model: "gpt-3.5-turbo",
+    //     messages: [{
+    //         "role": "system",
+    //         "content": "You are generating card information for a playing card game. You will be provided descriptions of the card's image and you will convert these descriptions into a dramatic title and description for the card. The title and description should be formatted as '%t\n%d, where %t is the title and %d is the description. Both should be at most 250 characters long.",
+    //     },
+    //     {
+    //         "role": "user",
+    //         "content": `Generate a title and card description for a playing card with following image: ${prompt}.`,
+    //     }
+    //     ],
+    // });
+
+    // if (!image.data[0]) throw new Error("No image data returned from OpenAI");
+    // if (!info.choices[0]) throw new Error("No data returned from OpenAI");
+
+    // const content = info.choices[0].message.content!;
+
+    // const contentArray = content.split("\n");
+    // let t = contentArray[0] || '';
+    // let d = contentArray[1] || '';
+
+    // t = t.replaceAll("Title: ", "");
+    // t = t.replaceAll("\"", "");
+
+    // d = d.replaceAll("Description: ", "");
+    // d = d.replaceAll("\"", "");
 
     const attackScore = Math.floor(Math.random() * 10);
     const defenseScore = Math.floor(Math.random() * 10);

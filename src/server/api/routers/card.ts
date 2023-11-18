@@ -29,7 +29,8 @@ export const cardRouter = createTRPCRouter({
       const prompt = input.prompt;
 
 
-      const { success: allowed } = await ratelimit.limit(ctx.session.user.id);
+      // const { success: allowed } = await ratelimit.limit(ctx.session.user.id);
+      const allowed = true;
 
       if (allowed) {
         const newPendingCard = await ctx.db.pendingCard.create({
@@ -81,19 +82,24 @@ export const cardRouter = createTRPCRouter({
 
       if (!pendingCard) return;
 
+      console.log(pendingCard);
+
       const newFulfilledCard = await ctx.db.card.create({
         data: { ...input.card, prompt: pendingCard.prompt, createdById: pendingCard.createdById }
       })
 
       if (newFulfilledCard) {
-        ctx.db.pendingCard.update({
+        console.log(newFulfilledCard, "updating");
+        const updateResult = await ctx.db.pendingCard.update({
           data: {
             fulfilled: true
           },
           where: {
-            id: pendingCard.id
+            id: input.pendingCardId
           }
         });
+
+        console.log("updateResult", updateResult);
 
         const queryClient = new QueryClient();
         queryClient.invalidateQueries();
