@@ -40,7 +40,7 @@ export default function handler(
       const data = input.data;
       console.log(data);
 
-      const newCard = caller.card.fulfillPendingCard(data);
+      const newCard = caller.pendingCard.fulfill(data);
 
       res.status(200).json({ message: JSON.stringify(newCard) });
       return newCard;

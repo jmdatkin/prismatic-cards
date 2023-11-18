@@ -211,7 +211,7 @@ const generateCardData = async (prompt: string) => {
     return card;
 };
 
-const mock_persist = async (cardData: any) => {
+const mock_fulfill = async (cardData: any) => {
     const caller = appRouter.createCaller({
         session: null,
         db: db
@@ -235,7 +235,7 @@ const mock_persist = async (cardData: any) => {
 
     const data = input.data;
 
-    const newCard = caller.card.fulfillPendingCard(data);
+    const newCard = caller.pendingCard.fulfill(data);
 
     return newCard;
 };
@@ -259,7 +259,7 @@ const mock_makeCard = async (prompt: string, pendingCardId: number) => {
 
         console.log("S3 location received:", location);
 
-        return mock_persist({
+        return mock_fulfill({
             card: {
                 title: card.title,
                 description: card.desc,

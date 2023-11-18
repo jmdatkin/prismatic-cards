@@ -35,13 +35,13 @@ export default function Home() {
   const { data, isLoading: cardsLoading } = useGetCards();
   const { data: ownPendingCards } = useGetOwnPendingCards();
 
-  const [pendingCard, setPendingCard] = useState<inferProcedureOutput<AppRouter["pendingCard"]["get"]>>();
+  // const [pendingCard, setPendingCard] = useState<inferProcedureOutput<AppRouter["pendingCard"]["get"]>>();
 
-  const { mutate: createCard, isLoading } = api.card.createPending.useMutation({
-    onSuccess: (card) => {
+  const { mutate: createCard, isLoading } = api.pendingCard.create.useMutation({
+    onSuccess: (card: any) => {
       if (card)
-        setPendingCard(card);
-      void ctx.card.invalidate();
+        // setPendingCard(card);
+        void ctx.card.invalidate();
     }
   });
 
@@ -51,6 +51,7 @@ export default function Home() {
 
   const clickHandler = (e: any) => {
     createCard({ prompt });
+
     ctx.pendingCard.invalidate();
   }
 
@@ -62,53 +63,53 @@ export default function Home() {
     //   return <span className={libreBaskerville.className}>Generating... <LoadingSpinner></LoadingSpinner></span>
     else {
       return <>
-        <GenerateStatusIndicator pendingCardId={pendingCard ? pendingCard.id : undefined}></GenerateStatusIndicator>
+        {/* <GenerateStatusIndicator pendingCardId={pendingCard ? pendingCard.id : undefined}></GenerateStatusIndicator> */}
         <h2 className={`${libreBaskerville.className} text-[#9e5722] text-lg font-bold uppercase`}>Generate</h2>
         {/* <h1 className="text-zinc-50">Prismatic Cards v1.0</h1> */}
         <div className="w-full flex space-x-2 mb-6">
           <input className="bg-white text-black p-2 rounded" onChange={(e: any) => { setPrompt(e.target.value) }}></input>
           <button className="bg-orange-400 rounded p-2 hover:bg-orange-300 active:bg-orange-500 active:ring ring-color-orange" onClick={clickHandler}>Submit</button>
-      </div >
+        </div >
       </>
     }
   }
 
-return (
-  <>
-    <Head>
-      <title>Prismatic Cards</title>
-      <meta name="description" content="Generate you own cards..." />
-      <link rel="icon" href="/favicon.ico" />
-    </Head>
-    <main className="flex min-h-screen flex-col items-center p-12">
+  return (
+    <>
+      <Head>
+        <title>Prismatic Cards</title>
+        <meta name="description" content="Generate you own cards..." />
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
+      <main className="flex min-h-screen flex-col items-center p-12">
 
-      <div className="w-full h-24 flex justify-between">
-        <div></div>
-        <div className="flex items-center space-x-2">
-          {session ?
-            (
-              <>
-                <SignOut></SignOut>
-                <ProfileIndicator></ProfileIndicator>
-              </>
-            ) : (
-              <SignIn></SignIn>
-            )}
+        <div className="w-full h-24 flex justify-between">
+          <div></div>
+          <div className="flex items-center space-x-2">
+            {session ?
+              (
+                <>
+                  <SignOut></SignOut>
+                  <ProfileIndicator></ProfileIndicator>
+                </>
+              ) : (
+                <SignIn></SignIn>
+              )}
+          </div>
         </div>
-      </div>
 
-      <div className="flex flex-col">
-        {inputComponent()}
-        <div className="w-full h-full flex gap-6 flex-wrap">
-          {ownPendingCards?.map((card: any, idx: number) => {
-            return <PendingCard value={card} key={idx}></PendingCard>
-          })}
-          {data?.map((card: any, idx: number) => {
-            return <Card value={card} key={idx}></Card>
-          })}
+        <div className="flex flex-col">
+          {inputComponent()}
+          <div className="w-full h-full flex gap-6 flex-wrap">
+            {ownPendingCards?.map((card: any, idx: number) => {
+              return <PendingCard value={card} key={idx}></PendingCard>
+            })}
+            {data?.map((card: any, idx: number) => {
+              return <Card value={card} key={idx}></Card>
+            })}
+          </div>
         </div>
-      </div>
-    </main>
-  </>
-);
+      </main>
+    </>
+  );
 }
