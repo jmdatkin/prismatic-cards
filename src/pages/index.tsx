@@ -10,11 +10,19 @@ import ProfileIndicator from "@/components/profile-indicator";
 import LoadingSpinner from "@/components/loading-spinner";
 import SignOut from "@/components/sign-out";
 import SignIn from "@/components/sign-in";
+import { inferProcedureOutput } from "@trpc/server";
+import { AppRouter } from "@/server/api/root";
+import GenerateStatusIndicator from "@/components/generation-status-indicator";
+import PendingCard from "@/components/pending-card";
 
 const libreBaskerville = Libre_Baskerville({ weight: ["400", "700"], subsets: ["latin"] });
 
 const useGetCards = () => {
   return api.card.getAll.useQuery();
+};
+
+const useGetOwnPendingCards = () => {
+  return api.pendingCard.getOwn.useQuery();
 };
 
 export default function Home() {
@@ -25,9 +33,14 @@ export default function Home() {
   const ctx = api.useUtils();
 
   const { data, isLoading: cardsLoading } = useGetCards();
+  const { data: ownPendingCards } = useGetOwnPendingCards();
+
+  const [pendingCard, setPendingCard] = useState<inferProcedureOutput<AppRouter["pendingCard"]["get"]>>();
 
   const { mutate: createCard, isLoading } = api.card.createPending.useMutation({
-    onSuccess: () => {
+    onSuccess: (card) => {
+      if (card)
+        setPendingCard(card);
       void ctx.card.invalidate();
     }
   });
@@ -40,10 +53,11 @@ export default function Home() {
     if (!session) {
       return <></>
     }
-    else if (isLoading) {
-      return <span className={libreBaskerville.className}>Generating... <LoadingSpinner></LoadingSpinner></span>
-    } else {
+    // else if (pendingCard && !pendingCard.fulfilled) {
+    //   return <span className={libreBaskerville.className}>Generating... <LoadingSpinner></LoadingSpinner></span>
+    else {
       return <>
+        <GenerateStatusIndicator pendingCardId={pendingCard ? pendingCard.id : undefined}></GenerateStatusIndicator>
         <h2 className={`${libreBaskerville.className} text-[#9e5722] text-lg font-bold uppercase`}>Generate here sir ..</h2>
         {/* <h1 className="text-zinc-50">Prismatic Cards v1.0</h1> */}
         <div className="w-full flex space-x-2 mb-6">
@@ -81,6 +95,9 @@ export default function Home() {
         <div className="flex flex-col">
           {inputComponent()}
           <div className="w-full h-full flex gap-6 flex-wrap">
+            {ownPendingCards?.map((card: any, idx: number) => {
+              return <PendingCard value={card} key={idx}></PendingCard>
+            })}
             {data?.map((card: any, idx: number) => {
               return <Card value={card} key={idx}></Card>
             })}

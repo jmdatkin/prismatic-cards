@@ -13,6 +13,7 @@ import { rule } from "postcss";
 import { QueryClient, useQuery } from "@tanstack/react-query";
 import { getQueryClient } from "@trpc/react-query/shared";
 import { api } from "@/utils/api";
+import { ratelimit } from "@/services/redis-service";
 
 export const cardRouter = createTRPCRouter({
   getAll: publicProcedure
@@ -27,22 +28,30 @@ export const cardRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const prompt = input.prompt;
 
-      const newPendingCard = await ctx.db.pendingCard.create({
-        data: {
-          prompt: prompt,
-          createdBy: { connect: { id: ctx.session.user.id } },
-        }
-      });
 
-      if (!newPendingCard) return;
+      const { success: allowed } = await ratelimit.limit(ctx.session.user.id);
 
-      if (env["NODE_ENV"] === "production")
-      // Invoke lambda without caring about return type to avoid timeout
-        void invokeGenerateCardLambda(prompt, newPendingCard.id);
-      else
-        mock_invokeGenerateCardLambda(prompt, newPendingCard.id);
+      if (allowed) {
+        const newPendingCard = await ctx.db.pendingCard.create({
+          data: {
+            prompt: prompt,
+            createdBy: { connect: { id: ctx.session.user.id } },
+          }
+        });
 
-      return newPendingCard;
+        if (!newPendingCard) return;
+
+        if (env["NODE_ENV"] === "production")
+          // Invoke lambda without caring about return type to avoid timeout
+          void invokeGenerateCardLambda(prompt, newPendingCard.id);
+        else
+          mock_invokeGenerateCardLambda(prompt, newPendingCard.id);
+
+        return newPendingCard;
+
+      } else {
+        console.error("Rate limit reached");
+      }
     }),
 
   fulfillPendingCard: publicProcedure
