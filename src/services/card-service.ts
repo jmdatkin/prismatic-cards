@@ -86,6 +86,7 @@ const generateCardData = async (prompt: string) => {
 
     // DALL-E
     const image = await openai.images.generate({
+        //@ts-ignore
         model: "dall-e-3",
         prompt: `${prompt}`,
         // size: "512x512",
@@ -94,7 +95,7 @@ const generateCardData = async (prompt: string) => {
         response_format: "b64_json",
     });
     // const image = await openai.images.generate({
-        
+
     //     prompt: `${prompt}`,
     //     size: "512x512",
     //     response_format: "b64_json",
@@ -113,7 +114,7 @@ const generateCardData = async (prompt: string) => {
         }
         ],
     });
-    
+
     const description = await openai.chat.completions.create({
         model: "gpt-3.5-turbo",
         messages: [{

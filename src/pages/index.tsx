@@ -49,7 +49,7 @@ export default function Home() {
     return <div>Loading...</div>
   };
 
-  const clickHandler = (e) => {
+  const clickHandler = (e: any) => {
     createCard({ prompt });
     ctx.pendingCard.invalidate();
   }
