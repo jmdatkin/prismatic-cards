@@ -280,17 +280,21 @@ const mock_invokeGenerateCardLambda: (prompt: string, pendingCardId: number) => 
     return mock_makeCard(prompt, pendingCardId);
 };
 
-const invokeGenerateCardLambda: (prompt: string, pendingCardId: number) => Promise<PromiseResult<Lambda.InvocationResponse, AWSError>> = async (prompt, pendingCardId) => {
+// const invokeGenerateCardLambda: (prompt: string, pendingCardId: number) => Promise<PromiseResult<Lambda.InvocationResponse, AWSError>> = async (prompt, pendingCardId) => {
+const invokeGenerateCardLambda: (prompt: string, pendingCardId: number) => Promise<any> = async (prompt, pendingCardId) => {
 
-    const params = {
-        FunctionName: 'prismatic-cards_generate-card-data',
-        Payload: JSON.stringify({
-            prompt,
-            pendingCardId
-        })
-    };
+    return fetch("https://rf2dcogu08.execute-api.us-east-1.amazonaws.com/prod/", { method: "POST", body: JSON.stringify({prompt, pendingCardId})});
 
-    return lambda.invoke(params).promise();
+
+    // const params = {
+    //     FunctionName: 'prismatic-cards_generate-card-data',
+    //     Payload: JSON.stringify({
+    //         prompt,
+    //         pendingCardId
+    //     })
+    // };
+
+    // return lambda.invoke(params).promise();
 };
 
 

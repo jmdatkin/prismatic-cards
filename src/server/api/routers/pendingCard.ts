@@ -7,7 +7,7 @@ import {
 } from "@/server/api/trpc";
 import { invokeGenerateCardLambda, mock_invokeGenerateCardLambda } from "@/services/card-service";
 import { env } from "@/env.mjs";
-import rateLimiterMiddleware from "@/pages/middleware/rateLimiterMiddleware";
+import rateLimiterMiddleware from "@/middleware/rateLimiterMiddleware";
 import { QueryClient } from "@tanstack/react-query";
 
 export const pendingCardRouter = createTRPCRouter({

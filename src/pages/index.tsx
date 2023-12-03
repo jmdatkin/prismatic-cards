@@ -46,7 +46,7 @@ export default function Home() {
         refetchPendingCards();
     },
     onError: (error) => {
-      if (error.data.code === "TOO_MANY_REQUESTS") {
+      if (error.data!.code === "TOO_MANY_REQUESTS") {
         toast("Rate limit reached!");
       }
     }
