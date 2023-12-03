@@ -23,11 +23,11 @@ const openai = new OpenAI({
 
 const s3 = new S3();
 
-const uploadToS3 = async (keyName: string, imageData: Buffer) => {
+const uploadToS3 = async (key: string, imageData: string) => {
     const bucket = process.env["AWS_S3_BUCKET"];
 
     const params = {
-        Key: `cards/${keyName}`,
+        Key: `cards/${key}`,
         Bucket: bucket,
         Body: imageData,
         ContentEncoding: 'base64',
@@ -35,11 +35,10 @@ const uploadToS3 = async (keyName: string, imageData: Buffer) => {
     };
 
     let location = '';
-    let key = '';
 
     try {
         const result = await s3.putObject(params);
-        location = `https://prismatic-cards-s3.s3.us-east-1.amazonaws.com/cards/${keyName}`
+        location = `https://prismatic-cards-s3.s3.us-east-1.amazonaws.com/cards/${key}`
         console.log("[S3] Successfully uploaded at:", location);
         return location;
     }
@@ -55,7 +54,7 @@ const CardRarity = {
     Prismatic: 3
 };
 
-const processCardImage = (imageData: string) => {
+const resizeAndCompress = (imageData: string) => {
 
     try {
 
@@ -64,8 +63,11 @@ const processCardImage = (imageData: string) => {
         const width = 512;
         const height = 512;
 
+        const formattedDataString = imageData.split(';base64,').pop();
 
-        const data = Buffer.from(imageData.split(';base64,').pop() as string, 'base64');
+        if (!formattedDataString) return null;
+
+        const data = Buffer.from(formattedDataString, 'base64');
 
         const image = sharp(data)
             .resize(width, height)
@@ -76,103 +78,55 @@ const processCardImage = (imageData: string) => {
             .toBuffer();
 
         return image;
-
     }
     catch (e) { throw new Error(`[Sharp] ${e}`) }
 };
 
-const generateCardData = async (prompt: string) => {
-
+const generateCard = async (prompt: string) => {
 
     // DALL-E
     const image = await openai.images.generate({
         //@ts-ignore
         model: "dall-e-3",
         prompt: `${prompt}`,
-        // size: "512x512",
         n: 1,
         size: "1024x1024",
         response_format: "b64_json",
     });
-    // const image = await openai.images.generate({
-
-    //     prompt: `${prompt}`,
-    //     size: "512x512",
-    //     response_format: "b64_json",
-    // });
 
     // CHATGPT
-    const title = await openai.chat.completions.create({
+    const chatContext = "You are generating card information for an online playing card game like Hearthstone or Magic the Gathering. Players will battle each other using these cards. Each card represents a 'unit', which should represent either a monster/creature/character, a spell, or any sort of fantastical phenomenon. You will be provided a description of the card's unit and you will create a title for the card. The title should be at most 24 characters long.";
+    const titleConversation = await openai.chat.completions.create({
         model: "gpt-3.5-turbo",
         messages: [{
             "role": "system",
-            "content": "You are generating card information for a playing card game. You will be provided a descrption of the card's image and you will convert this  description into a title for the card. The title should be at most 250 characters long.",
+            "content": chatContext
         },
         {
             "role": "user",
-            "content": `Generate a title for a playing card with following image: ${prompt}.`,
+            "content": `Generate a title for a playing card with a unit described by the following prompt: ${prompt}.`,
         }
         ],
     });
 
-    const description = await openai.chat.completions.create({
+    const descriptionConversation = await openai.chat.completions.create({
         model: "gpt-3.5-turbo",
         messages: [{
             "role": "system",
-            "content": "You are generating card information for a playing card game. You will be provided a descrption of the card's image and you will convert this description into blurb text for the card. The blurb text should be at most 250 characters long.",
+            "content": chatContext
         },
         {
             "role": "user",
-            "content": `Generate blurb text for a playing card with following image: ${prompt}.`,
+            "content": `Generate a description for a playing card with a unit described by the following prompt: ${prompt}.`,
         }
         ],
     });
+
+    let title, description;
+    title = titleConversation.choices[0]?.message.content || '';
+    description = descriptionConversation.choices[0]?.message.content || '';
 
     if (!image.data[0]) throw new Error("No image data returned from OpenAI");
-    if (!title.choices[0]) throw new Error("No title data returned from OpenAI");
-    if (!description.choices[0]) throw new Error("No description data returned from OpenAI");
-
-    let t = title.choices[0].message.content!;
-    let d = description.choices[0].message.content!;
-
-    // const content = info.choices[0].message.content!;
-
-    // const contentArray = content.split("\n");
-    // let t = contentArray[0] || '';
-    // let d = contentArray[1] || '';
-
-    // t = t.replaceAll("Title: ", "");
-    // t = t.replaceAll("\"", "");
-
-    // d = d.replaceAll("Description: ", "");
-    // d = d.replaceAll("\"", "");
-    // const info = await openai.chat.completions.create({
-    //     model: "gpt-3.5-turbo",
-    //     messages: [{
-    //         "role": "system",
-    //         "content": "You are generating card information for a playing card game. You will be provided descriptions of the card's image and you will convert these descriptions into a dramatic title and description for the card. The title and description should be formatted as '%t\n%d, where %t is the title and %d is the description. Both should be at most 250 characters long.",
-    //     },
-    //     {
-    //         "role": "user",
-    //         "content": `Generate a title and card description for a playing card with following image: ${prompt}.`,
-    //     }
-    //     ],
-    // });
-
-    // if (!image.data[0]) throw new Error("No image data returned from OpenAI");
-    // if (!info.choices[0]) throw new Error("No data returned from OpenAI");
-
-    // const content = info.choices[0].message.content!;
-
-    // const contentArray = content.split("\n");
-    // let t = contentArray[0] || '';
-    // let d = contentArray[1] || '';
-
-    // t = t.replaceAll("Title: ", "");
-    // t = t.replaceAll("\"", "");
-
-    // d = d.replaceAll("Description: ", "");
-    // d = d.replaceAll("\"", "");
 
     const attackScore = Math.floor(Math.random() * 10);
     const defenseScore = Math.floor(Math.random() * 10);
@@ -199,18 +153,17 @@ const generateCardData = async (prompt: string) => {
 
     const card = {
         image: `data:image/png;base64,${image.data[0].b64_json}`,
-        title: t,
-        desc: d,
+        title: title,
+        desc: description,
         atk: attackScore,
         def: defenseScore,
         rarity: rarityScore,
     };
 
-    console.log("[OpenAI] Data from openai: ", card)
-
     return card;
 };
 
+const makeKeyName = (title: string) => `${title.toLowerCase().replaceAll(' ', '_')}:${Date.now()}`;
 const mock_fulfill = async (cardData: any) => {
     const caller = appRouter.createCaller({
         session: null,
@@ -240,61 +193,45 @@ const mock_fulfill = async (cardData: any) => {
     return newCard;
 };
 
-const mock_makeCard = async (prompt: string, pendingCardId: number) => {
+const makeCard = async (prompt: string) => {
 
     try {
-        const card = await generateCardData(prompt);
+        const card = await generateCard(prompt);
+        const keyName = makeKeyName(card.title);
 
-        console.log("Generated card: ", card);
+        const convertedImage = await resizeAndCompress(card.image);
+        const location = await uploadToS3(keyName, convertedImage?.toString()!);
 
-        const convertedImage = await processCardImage(card.image);
-
-        if (!convertedImage) throw Error("No data returned from image processing");
-
-        console.log("Processed image");
-
-        const keyName = `${card.title}:${card.desc.substring(0, 32)}:${Date.now()}`;
-
-        const location = await uploadToS3(keyName, convertedImage);
-
-        console.log("S3 location received:", location);
-
-        return mock_fulfill({
-            card: {
-                title: card.title,
-                description: card.desc,
-                attack: card.atk,
-                defense: card.def,
-                rarity: card.rarity,
-                imageUrl: location
-            },
-            pendingCardId: pendingCardId
-        });
+        return {
+            title: card.title,
+            description: card.desc,
+            attack: card.atk,
+            defense: card.def,
+            rarity: card.rarity,
+            imageUrl: location
+        };
     }
     catch (e) {
-        throw e;
+        return Promise.reject(e);
     }
 };
 
 const mock_invokeGenerateCardLambda: (prompt: string, pendingCardId: number) => Promise<unknown> = async (prompt, pendingCardId) => {
-    return mock_makeCard(prompt, pendingCardId);
+    const cardData = await makeCard(prompt);
+    return mock_fulfill({card: cardData, pendingCardId});
 };
 
-// const invokeGenerateCardLambda: (prompt: string, pendingCardId: number) => Promise<PromiseResult<Lambda.InvocationResponse, AWSError>> = async (prompt, pendingCardId) => {
-const invokeGenerateCardLambda: (prompt: string, pendingCardId: number) => Promise<any> = async (prompt, pendingCardId) => {
+const invokeGenerateCardLambda: (prompt: string, pendingCardId: number) => Promise<PromiseResult<Lambda.InvocationResponse, AWSError>> = async (prompt, pendingCardId) => {
 
-    return fetch("https://rf2dcogu08.execute-api.us-east-1.amazonaws.com/prod/", { method: "POST", body: JSON.stringify({prompt, pendingCardId})});
+    const params = {
+        FunctionName: 'PrismaticCards_CreateCard',
+        Payload: JSON.stringify({
+            prompt,
+            pendingCardId
+        })
+    };
 
-
-    // const params = {
-    //     FunctionName: 'prismatic-cards_generate-card-data',
-    //     Payload: JSON.stringify({
-    //         prompt,
-    //         pendingCardId
-    //     })
-    // };
-
-    // return lambda.invoke(params).promise();
+    return lambda.invoke(params).promise();
 };
 
 

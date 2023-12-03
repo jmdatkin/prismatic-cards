@@ -12,7 +12,7 @@ export class PrismaticCardsStackStack extends cdk.Stack {
     // The code that defines your stack goes here
 
     // example resource
-    const apiHandlerFunction = new Function(this, "ApiHandler", {
+    const apiHandlerFunction = new Function(this, "PrismaticCards_CreateCard", {
       code: Code.fromAsset(path.resolve(__dirname,"../handlers")), // 👈 This is crucial
       runtime: Runtime.NODEJS_18_X,
       handler: "main.handler",
@@ -20,27 +20,5 @@ export class PrismaticCardsStackStack extends cdk.Stack {
       timeout: cdk.Duration.seconds(30)
     });
 
-    const api = new RestApi(this, "Api", {
-      deploy: true,
-      defaultMethodOptions: {
-        apiKeyRequired: true,
-      },
-    });
-
-    api.root.addMethod("POST", new LambdaIntegration(apiHandlerFunction));
-
-    const apiKey = api.addApiKey("ApiKey"); // 👈 to ease your testing
-
-    const usagePlan = api.addUsagePlan("UsagePlan", {
-      name: "UsagePlan",
-      apiStages: [
-        {
-          api,
-          stage: api.deploymentStage,
-        },
-      ],
-    });
-
-    usagePlan.addApiKey(apiKey);
   }
 }

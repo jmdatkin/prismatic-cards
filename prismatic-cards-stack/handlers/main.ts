@@ -2,7 +2,6 @@ const pkg = require("@aws-sdk/client-s3");
 const OpenAI = require("openai");
 const sharp = require("sharp");
 const axios = require("axios");
-import { IFunction } from 'aws-cdk-lib/aws-lambda';
 import { Handler } from 'aws-lambda';
 
 const { PutObjectRequest, S3 } = pkg;
