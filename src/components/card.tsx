@@ -22,8 +22,6 @@ function Card(props: any) {
 
     return (
         <div className={`${libreBaskerville.className} ${styles.card}  z-[100] flex flex-col justify-between w-[300px] h-[500px] bg-zinc-950 text-zinc-50 rounded relative`}>
-            {/* <div className={`${styles.attack} z-[200]`}>{props.value.attack}</div>
-            <div className={`${styles.defense} z-[200]`}>{props.value.defense}</div> */}
             <div className={`${styles.cardTitle} ${rarityMap[props.value.rarity]}`}>
                 <h4 className="text-lg uppercase font-bold text-center">{props.value.title}</h4>
             </div>
@@ -38,7 +36,6 @@ function Card(props: any) {
                 <span>Def: {props.value.defense}</span>
             </div>
             <div className="h-1/2 relative">
-                {/* <img className="object-cover" src={props.value.image}></img> */}
                 <Image alt="" fill={true} className="object-cover" loading='lazy' src={props.value.imageUrl}></Image>
             </div>
         </div>

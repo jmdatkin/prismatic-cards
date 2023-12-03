@@ -29,6 +29,7 @@
     "openai": "^4.14.2",
     "react": "18.2.0",
     "react-dom": "18.2.0",
+    "react-hot-toast": "^2.4.1",
     "redis": "^4.6.10",
     "sharp": "^0.32.6",
     "superjson": "^1.13.1",

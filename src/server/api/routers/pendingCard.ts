@@ -38,7 +38,7 @@ export const pendingCardRouter = createTRPCRouter({
         }),
 
     create: protectedProcedure
-        .use(rateLimiterMiddleware)
+        // .use(rateLimiterMiddleware)
         .input(z.object({ prompt: z.string().min(1).max(255) }))
         .mutation(async ({ ctx, input }) => {
             const prompt = input.prompt;

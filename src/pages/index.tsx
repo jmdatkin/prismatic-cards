@@ -14,6 +14,7 @@ import { inferProcedureOutput } from "@trpc/server";
 import { AppRouter } from "@/server/api/root";
 import GenerateStatusIndicator from "@/components/generation-status-indicator";
 import PendingCard from "@/components/pending-card";
+import toast from "react-hot-toast";
 
 const libreBaskerville = Libre_Baskerville({ weight: ["400", "700"], subsets: ["latin"] });
 
@@ -33,7 +34,7 @@ export default function Home() {
   const ctx = api.useUtils();
 
   const { data, isLoading: cardsLoading } = useGetCards();
-  const { data: ownPendingCards } = useGetOwnPendingCards();
+  const { data: ownPendingCards, refetch: refetchPendingCards } = useGetOwnPendingCards();
 
   // const [pendingCard, setPendingCard] = useState<inferProcedureOutput<AppRouter["pendingCard"]["get"]>>();
 
@@ -41,7 +42,13 @@ export default function Home() {
     onSuccess: (card: any) => {
       if (card)
         // setPendingCard(card);
-        void ctx.card.invalidate();
+        // void ctx.card.invalidate();
+        refetchPendingCards();
+    },
+    onError: (error) => {
+      if (error.data.code === "TOO_MANY_REQUESTS") {
+        toast("Rate limit reached!");
+      }
     }
   });
 
@@ -51,7 +58,6 @@ export default function Home() {
 
   const clickHandler = (e: any) => {
     createCard({ prompt });
-
     ctx.pendingCard.invalidate();
   }
 
@@ -59,8 +65,7 @@ export default function Home() {
     if (!session) {
       return <></>
     }
-    // else if (pendingCard && !pendingCard.fulfilled) {
-    //   return <span className={libreBaskerville.className}>Generating... <LoadingSpinner></LoadingSpinner></span>
+
     else {
       return <>
         {/* <GenerateStatusIndicator pendingCardId={pendingCard ? pendingCard.id : undefined}></GenerateStatusIndicator> */}
