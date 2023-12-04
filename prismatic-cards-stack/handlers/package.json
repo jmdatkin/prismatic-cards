@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc"
   },
   "author": "",
   "license": "ISC",
@@ -13,6 +14,6 @@
     "@types/aws-lambda": "^8.10.130",
     "axios": "^1.6.2",
     "openai": "^4.20.1",
-    "sharp": "^0.33.0"
+    "sharp": "~0.32.6"
   }
 }

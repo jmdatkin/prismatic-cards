@@ -224,7 +224,7 @@ const mock_invokeGenerateCardLambda: (prompt: string, pendingCardId: number) => 
 const invokeGenerateCardLambda: (prompt: string, pendingCardId: number) => Promise<PromiseResult<Lambda.InvocationResponse, AWSError>> = async (prompt, pendingCardId) => {
 
     const params = {
-        FunctionName: 'PrismaticCards_CreateCard',
+        FunctionName: 'PrismaticCardsStackStack-PrismaticCardsCreateCardE-lJyrI9o3x00P',
         Payload: JSON.stringify({
             prompt,
             pendingCardId

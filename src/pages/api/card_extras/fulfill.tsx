@@ -34,7 +34,7 @@ export default function handler(
       }).safeParse(req.body);
 
       if (!input.success) {
-        throw new Error("Input data of invalid shape");
+        throw new Error("Input data of invalid shape:" + input.error);
       }
 
       const data = input.data;

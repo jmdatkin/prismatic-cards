@@ -1,10 +1,13 @@
-const pkg = require("@aws-sdk/client-s3");
-const OpenAI = require("openai");
-const sharp = require("sharp");
-const axios = require("axios");
+// const pkg = require("@aws-sdk/client-s3");
+// const OpenAI = require("openai");
+// const sharp = require("@img/sharp-linux-x64");
+import sharp from "sharp";
+// const axios = require("axios");
+import { PutObjectCommandInput, PutObjectRequest, S3 } from "@aws-sdk/client-s3";
+import OpenAI from "openai";
+// import sharp from "sharp";
+import axios from "axios";
 import { Handler } from 'aws-lambda';
-
-const { PutObjectRequest, S3 } = pkg;
 
 const apiKey = process.env["OPENAI_API_KEY"];
 
@@ -14,10 +17,12 @@ const openai = new OpenAI({
 
 const s3 = new S3();
 
-const uploadToS3 = async (key: string, imageData: string) => {
+const uploadToS3 = async (key: string, imageData: string | Buffer) => {
+    console.log("[stage:s3] Attempting upload resource to s3 with key " + key);
+
     const bucket = process.env["AWS_S3_BUCKET"];
 
-    const params = {
+    const params: PutObjectCommandInput = {
         Key: `cards/${key}`,
         Bucket: bucket,
         Body: imageData,
@@ -30,10 +35,11 @@ const uploadToS3 = async (key: string, imageData: string) => {
     try {
         const result = await s3.putObject(params);
         location = `https://prismatic-cards-s3.s3.us-east-1.amazonaws.com/cards/${key}`
-        console.log("[S3] Successfully uploaded at:", location);
+        console.log("[stage:s3] Successfully uploaded at:", location);
         return location;
     }
     catch (e) {
+        console.error("[stage:s3] Upload failed: " + e);
         throw new Error(JSON.stringify(e));
     }
 }
@@ -46,10 +52,8 @@ const CardRarity = {
 };
 
 const resizeAndCompress = (imageData: string) => {
-
     try {
-
-        console.log("Attempting to rezize/compress image...")
+        console.log("[stage:sharp] Attempting to rezize/compress image...")
 
         const width = 512;
         const height = 512;
@@ -70,10 +74,12 @@ const resizeAndCompress = (imageData: string) => {
 
         return image;
     }
-    catch (e) { throw new Error(`[Sharp] ${e}`) }
+    catch (e) { throw new Error(`[stage:sharp] An error occurred: ${e}`) }
 };
 
 const generateCard = async (prompt: string) => {
+    console.log("[stage:openAI] Attempting fetching data from OpenAI APIs");
+    console.log("[stage:openAI] Prompt: " + prompt);
 
     // DALL-E
     const image = await openai.images.generate({
@@ -140,6 +146,11 @@ const generateCard = async (prompt: string) => {
         rarityScore = CardRarity.Bronze;
     }
 
+    console.log("[stage:openAI] API call successful");
+    console.log("[stage:openAI] Title: " + title);
+    console.log("[stage:openAI] Description: " + title);
+
+
 
     const card = {
         image: `data:image/png;base64,${image.data[0].b64_json}`,
@@ -162,7 +173,9 @@ const makeCard = async (prompt: string) => {
         const keyName = makeKeyName(card.title);
 
         const convertedImage = await resizeAndCompress(card.image);
-        const location = await uploadToS3(keyName, convertedImage);
+        // const convertedImage = card.image; //Test lambda without sharp
+        // const location = await uploadToS3(keyName, convertedImage?.toString()!);
+        const location = await uploadToS3(keyName, convertedImage!);
 
         return Promise.resolve({
             title: card.title,
@@ -181,23 +194,32 @@ const makeCard = async (prompt: string) => {
 export const handler: Handler = async (event) => {
 
     const prompt = event.prompt;
-    const pendingCardId = event.pendingCardId;
+    const pendingCardId = +event.pendingCardId;
+
+    const cardData = await makeCard(prompt);
+
+    console.log("[stage:prismaticAPI] Making API request back to prismatic cards");
+    console.log("[stage:prismaticAPI] Data:");
+    console.log(cardData);
 
     try {
-        const cardData = await makeCard(prompt);
-
-        await axios.post('https://prismatic-cards.vercel.app/api/card_extras/persist', {
+        const axiosResponse = await axios.post('https://prismatic-cards.vercel.app/api/card_extras/fulfill', {
             pendingCardId,
             card: { ...cardData }
         });
 
+
         const response = {
             statusCode: 202,
-            message: "Card task created"
+            message: "Card successfully fulfilled"
         };
+        console.log("[stage:prismaticAPI] Card successfully fulfilled");
+        console.log(axiosResponse);
         return response;
     }
     catch (e) {
+        console.error("[stage:prismaticAPI] An error occurred");
+        console.error(e);
         const response = {
             statusCode: 500,
             body: 'An error occurred:' + e,
@@ -206,4 +228,4 @@ export const handler: Handler = async (event) => {
     }
 };
 
-module.exports = handler;
+module.exports.handler = handler;
